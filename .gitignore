@@ -1,0 +1,14 @@
+# IDEA
+*.iml
+.idea/
+
+# Java
+*.jar
+
+# Gradle
+.gradle/
+build/
+out/
+
+# OS
+.DS_Store

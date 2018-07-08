@@ -107,25 +107,25 @@ public class Spotify {
         _getUserId();
 
         // limit of 100 tracks per request
-        // todo adding more than one song per request is broken (library issue)
+        // todo adding more than one song per request is broken (possible library issue)
+
         String[] trackIdArray = new String[100];
         int limitHitCount = 0;
         for (int i = 0; i < trackIds.size(); i++) {
-//            if (i > 0 && i % 100 == 0) {
-//                AddTracksToPlaylistRequest addTracksToPlaylistRequest = spotifyApi.addTracksToPlaylist(this.userId, playlist.getId(), trackIdArray)
-//                    .build();
-            AddTracksToPlaylistRequest addTracksToPlaylistRequest = spotifyApi
-                .addTracksToPlaylist(this.userId, playlist.getId(), new String[]{"spotify:track:" + trackIds.get(i)})
-                .build();
+            if (i > 0 && i % 100 == 0) {
+                AddTracksToPlaylistRequest addTracksToPlaylistRequest = spotifyApi
+                    .addTracksToPlaylist(this.userId, playlist.getId(), trackIdArray)
+                    .build();
 
-            SnapshotResult snapshotResult = addTracksToPlaylistRequest.execute();
-            System.out.println(snapshotResult.getSnapshotId());
+                SnapshotResult snapshotResult = addTracksToPlaylistRequest.execute();
+                System.out.println(snapshotResult.getSnapshotId());
 
-//            limitHitCount++;
-//            trackIdArray = new String[100];
-//            }
+                limitHitCount++;
+                trackIdArray = new String[100];
+            }
 
-//            trackIdArray[i - (limitHitCount * 100)] = ("spotify:track:" + trackIds.get(i)).replaceAll("\\s+","");
+            trackIdArray[i - (limitHitCount * 100)] = ("spotify:track:" + trackIds.get(i))
+                .replaceAll("\\s+", "");
         }
     }
 
