@@ -6,6 +6,7 @@ import com.wrapper.spotify.model_objects.credentials.AuthorizationCodeCredential
 import com.wrapper.spotify.model_objects.special.SnapshotResult;
 import com.wrapper.spotify.model_objects.specification.Playlist;
 import com.wrapper.spotify.requests.data.playlists.AddTracksToPlaylistRequest;
+import io.indices.tvplaylistgenerator.App;
 import java.io.IOException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
@@ -17,14 +18,17 @@ import org.apache.commons.lang3.StringUtils;
 
 public class Spotify {
 
+    private App app;
     private SpotifyApi spotifyApi;
     private String userId;
 
-    public Spotify(String clientId, String clientSecret) {
+    public Spotify(App app, String clientId, String clientSecret) {
+        this.app = app;
+
         spotifyApi = SpotifyApi.builder()
             .setClientId(clientId)
             .setClientSecret(clientSecret)
-            .setRedirectUri(URI.create("https://tvpg.indices.io/callback"))
+            .setRedirectUri(URI.create(app.getConfig().getAppUrl()))
             .build();
     }
 
@@ -106,8 +110,9 @@ public class Spotify {
         throws IOException, SpotifyWebApiException {
         _getUserId();
 
+        int trackI = (int) Math.floor(trackIds.size() / 100);
         for (int i = 0; i < trackIds.size(); i = i + 100) {
-            List<String> subList = trackIds.subList(i, trackIds.size() - i * 100);
+            List<String> subList = trackIds.subList(i, trackIds.size() - ((trackI - i) * 100));
             String[] trackIdArray = new String[subList.size()];
             subList.toArray(trackIdArray);
 

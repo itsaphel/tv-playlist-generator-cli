@@ -69,7 +69,8 @@ public class TunefindScraper implements Scraper {
 
             if (url.contains("open.spotify.com") && !url
                 .contains("open.spotify.com/search/results")) {
-                songIds.add(url.replaceAll("https://open.spotify.com/track/", ""));
+                songIds.add(url.replaceAll("https://open.spotify.com/track/",
+                    "spotify:track:")); // Spotify URI formatting
             }
         }
 

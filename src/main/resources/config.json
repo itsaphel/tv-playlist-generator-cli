@@ -3,6 +3,7 @@
   "client_secret": "",
   "access_token": "",
   "refresh_token": "",
+  "app_url": "",
   "token_creation_date": "",
   "token_validity_duration": ""
 }

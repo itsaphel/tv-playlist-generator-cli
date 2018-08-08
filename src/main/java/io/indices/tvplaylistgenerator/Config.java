@@ -6,6 +6,7 @@ public class Config {
     private String clientSecret = "";
     private String accessToken = "";
     private String refreshToken = "";
+    private String appUrl;
     private String tokenCreationDate = "";
     private String tokenValidityDuration = "";
 
@@ -39,6 +40,14 @@ public class Config {
 
     public void setRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
+    }
+
+    public String getAppUrl() {
+        return appUrl;
+    }
+
+    public void setAppUrl(String appUrl) {
+        this.appUrl = appUrl;
     }
 
     public String getTokenCreationDate() {

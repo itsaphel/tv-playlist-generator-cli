@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.specification.Playlist;
+import io.indices.tvplaylistgenerator.scraper.TunefindScraper;
 import io.indices.tvplaylistgenerator.streaming.Spotify;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,21 +30,21 @@ public class App {
     private File configLocation;
     private Config config;
 
-    public void run(String showId, String spots) {
+    public void run(String showId) {
         initialise();
         List<String> songIds = new ArrayList<>();
 
-        songIds.addAll(Arrays.asList(spots.split(",")));
+        //songIds.addAll(Arrays.asList(spots.split(",")));
 
-//        try {
-//            songIds = new TunefindScraper(showId).getSongIds();
-//            System.out.println(String.join(",", songIds));
-//        } catch (IOException e) {
-//            logger.log(Level.SEVERE, "Error getting song IDs from TunefindScraper", e);
-//            System.exit(4);
-//        }
+        try {
+            songIds = new TunefindScraper(showId).getSongIds();
+            System.out.println(String.join(",", songIds));
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Error getting song IDs from TunefindScraper", e);
+            System.exit(4);
+        }
 
-        Spotify spotify = new Spotify(config.getClientId(), config.getClientSecret());
+        Spotify spotify = new Spotify(this, config.getClientId(), config.getClientSecret());
 
         try {
             String[] newData = spotify
@@ -68,6 +69,10 @@ public class App {
             logger.log(Level.SEVERE, "Error creating/adding songs to playlist", e);
             System.exit(4);
         }
+    }
+
+    public Config getConfig() {
+        return config;
     }
 
     private void initialise() {

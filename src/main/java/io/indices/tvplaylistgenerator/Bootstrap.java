@@ -9,7 +9,7 @@ public class Bootstrap {
             System.exit(2);
         }
 
-        new App().run(showId, args[1]);
+        new App().run(showId);
     }
 
     private static void printConfigErrorMessage(String message) {
