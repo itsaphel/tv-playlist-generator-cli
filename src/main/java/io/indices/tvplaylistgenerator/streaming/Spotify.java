@@ -106,26 +106,17 @@ public class Spotify {
         throws IOException, SpotifyWebApiException {
         _getUserId();
 
-        // limit of 100 tracks per request
-        // todo adding more than one song per request is broken (possible library issue)
+        for (int i = 0; i < trackIds.size(); i = i + 100) {
+            List<String> subList = trackIds.subList(i, trackIds.size() - i * 100);
+            String[] trackIdArray = new String[subList.size()];
+            subList.toArray(trackIdArray);
 
-        String[] trackIdArray = new String[100];
-        int limitHitCount = 0;
-        for (int i = 0; i < trackIds.size(); i++) {
-            if (i > 0 && i % 100 == 0) {
-                AddTracksToPlaylistRequest addTracksToPlaylistRequest = spotifyApi
+            AddTracksToPlaylistRequest addTracksToPlaylistRequest = spotifyApi
                     .addTracksToPlaylist(this.userId, playlist.getId(), trackIdArray)
                     .build();
 
-                SnapshotResult snapshotResult = addTracksToPlaylistRequest.execute();
-                System.out.println(snapshotResult.getSnapshotId());
-
-                limitHitCount++;
-                trackIdArray = new String[100];
-            }
-
-            trackIdArray[i - (limitHitCount * 100)] = ("spotify:track:" + trackIds.get(i))
-                .replaceAll("\\s+", "");
+            SnapshotResult snapshotResult = addTracksToPlaylistRequest.execute();
+            System.out.println(snapshotResult.getSnapshotId());
         }
     }
 
