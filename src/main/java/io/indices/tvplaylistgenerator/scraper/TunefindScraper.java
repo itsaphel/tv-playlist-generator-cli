@@ -1,9 +1,17 @@
 package io.indices.tvplaylistgenerator.scraper;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.indices.tvplaylistgenerator.App;
 import io.indices.tvplaylistgenerator.television.Episode;
 import io.indices.tvplaylistgenerator.television.Season;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -41,8 +49,7 @@ public class TunefindScraper implements Scraper {
         seasons.forEach(season -> {
             season.getEpisodes().forEach(episode -> {
                 try {
-                    List<String> episodeSongIds = getSongIdsFromEpisode(
-                        season.getSeasonId() + "/" + episode.getEpisodeId());
+                    List<String> episodeSongIds = getSongIdsFromEpisode(episode.getEpisodeId());
                     episode.addSongIds(episodeSongIds);
                     songIds.addAll(episodeSongIds);
                 } catch (IOException e) {
@@ -59,18 +66,24 @@ public class TunefindScraper implements Scraper {
      */
     public List<String> getSongIdsFromEpisode(String episodeUrlComponent) throws IOException {
         List<String> songIds = new ArrayList<>();
-        Document doc = Jsoup.connect(URL_BASE + showId + "/" + episodeUrlComponent).get();
 
-        Elements elements = doc.select(".SongList__container___2EXi7").get(0).child(1).children();
-        for (Element element : elements) {
-            String redirectUrl = element.getElementsByClass("StoreLinks__spotify___2k5Xi").get(0)
-                .absUrl("href");
-            String url = getRedirect(redirectUrl, false);
+        InputStream input = new URL("https://www.tunefind.com/api/frontend/episode/" + episodeUrlComponent + "?fields=song-events,questions,nextPrev").openStream();
+        Reader reader = new InputStreamReader(input, "UTF-8");
+        JsonParser parser = new JsonParser();
+        JsonObject rootObj = parser.parse(reader).getAsJsonObject().getAsJsonObject("episode");
+        input.close();
+        JsonArray songEvents = rootObj.getAsJsonArray("song_events");
 
-            if (url.contains("open.spotify.com") && !url
-                .contains("open.spotify.com/search/results")) {
-                songIds.add(url.replaceAll("https://open.spotify.com/track/",
-                    "spotify:track:")); // Spotify URI formatting
+        for (JsonElement elm : songEvents) {
+            JsonObject song = elm.getAsJsonObject().getAsJsonObject("song");
+            JsonElement forwardUrl = song.get("spotify");
+            if (!(forwardUrl instanceof JsonNull)) {
+                String redirectUrl = "https://www.tunefind.com" + forwardUrl.getAsString();
+                String url = getRedirect(redirectUrl, false);
+
+                if (url.contains("open.spotify.com") && !url.contains("open.spotify.com/search/results")) {
+                    songIds.add(url.replaceAll("https://open.spotify.com/track/", "spotify:track:")); // Spotify URI formatting
+                }
             }
         }
 
@@ -83,8 +96,7 @@ public class TunefindScraper implements Scraper {
         for (Element element : elements) {
             Elements seasonElm = element.getElementsByClass("EpisodeListItem__title___32XUR");
             if (!seasonElm.isEmpty()) {
-                String seasonId = seasonElm.get(0)
-                    .child(0).attr("href").split("/")[3];
+                String seasonId = seasonElm.get(0).child(0).attr("href").split("/")[3];
                 Season season = new Season(this.showId, seasonId);
                 seasons.add(season);
             }
