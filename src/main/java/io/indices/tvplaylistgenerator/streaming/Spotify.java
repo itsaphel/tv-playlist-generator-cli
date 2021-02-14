@@ -70,8 +70,7 @@ public class Spotify {
         System.out.println("Authorisation code: ");
         String authCode = scanner.nextLine();
 
-        AuthorizationCodeCredentials authCreds = spotifyApi.authorizationCode(authCode).build()
-            .execute();
+        AuthorizationCodeCredentials authCreds = spotifyApi.authorizationCode(authCode).build().execute();
         spotifyApi.setAccessToken(authCreds.getAccessToken());
         spotifyApi.setRefreshToken(authCreds.getRefreshToken());
 
@@ -110,9 +109,12 @@ public class Spotify {
         throws IOException, SpotifyWebApiException {
         _getUserId();
 
-        int trackI = (int) Math.floor(trackIds.size() / 100);
-        for (int i = 0; i < trackIds.size(); i = i + 100) {
-            List<String> subList = trackIds.subList(i, trackIds.size() - ((trackI - i) * 100));
+        int batchSize = 99;
+        int numberBatchesRequired = (int) Math.floor(trackIds.size() / batchSize);
+        for (int batch = 0; batch < numberBatchesRequired; batch++) {
+            int fromIndex = batch * batchSize;
+            int toIndex = Math.min(fromIndex + batchSize, trackIds.size() - 1);
+            List<String> subList = trackIds.subList(fromIndex, toIndex);
             String[] trackIdArray = new String[subList.size()];
             subList.toArray(trackIdArray);
 
