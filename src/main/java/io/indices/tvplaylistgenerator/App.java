@@ -13,11 +13,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,8 +33,6 @@ public class App {
     public void run(String showId) {
         initialise();
         List<String> songIds = new ArrayList<>();
-
-        //songIds.addAll(Arrays.asList(spots.split(",")));
 
         try {
             songIds = new TunefindScraper(showId).getSongIds();
@@ -82,19 +80,19 @@ public class App {
         try {
             configLocation = currentDir.resolve("config.json").toFile();
             config = createOrLoadJsonFile(configLocation, Config.class);
-        } catch (IllegalAccessException | InstantiationException | FileNotFoundException e) {
+        } catch (IllegalAccessException | InstantiationException | FileNotFoundException | NoSuchMethodException | InvocationTargetException e) {
             logger.log(Level.SEVERE, "Error loading config file", e);
             System.exit(2);
         }
     }
 
     private <T> T createOrLoadJsonFile(File file, Class<T> clazz)
-        throws FileNotFoundException, IllegalAccessException, InstantiationException {
+        throws FileNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         if (file.exists()) {
             return gson.fromJson(new FileReader(file), clazz);
         } else {
             try (PrintWriter writer = new PrintWriter(file)) {
-                T defaultClazz = clazz.newInstance();
+                T defaultClazz = clazz.getDeclaredConstructor().newInstance();
                 writer.println(gson.toJson(defaultClazz, clazz));
                 return defaultClazz;
             }

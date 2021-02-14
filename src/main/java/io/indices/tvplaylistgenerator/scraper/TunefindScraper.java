@@ -81,10 +81,13 @@ public class TunefindScraper implements Scraper {
         Document doc = Jsoup.connect(URL_BASE + showId).get();
         Elements elements = doc.select(".MainList__container___hFURG").get(0).children();
         for (Element element : elements) {
-            String seasonId = element.getElementsByClass("EpisodeListItem__title___32XUR").get(0)
-                .child(0).attr("href").split("/")[3];
-            Season season = new Season(this.showId, seasonId);
-            seasons.add(season);
+            Elements seasonElm = element.getElementsByClass("EpisodeListItem__title___32XUR");
+            if (!seasonElm.isEmpty()) {
+                String seasonId = seasonElm.get(0)
+                    .child(0).attr("href").split("/")[3];
+                Season season = new Season(this.showId, seasonId);
+                seasons.add(season);
+            }
         }
     }
 
