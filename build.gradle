@@ -1,12 +1,14 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '2.0.4'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
 
 }
 
 group 'io.indices'
 version '1.0-SNAPSHOT'
-sourceCompatibility = 1.8
+
+sourceCompatibility = 1.15
+targetCompatibility = 1.15
 
 repositories {
     mavenCentral()
