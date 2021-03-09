@@ -14,9 +14,12 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -48,13 +51,18 @@ public class TunefindScraper implements Scraper {
 
         seasons.forEach(season -> {
             season.getEpisodes().forEach(episode -> {
-                try {
-                    List<String> episodeSongIds = getSongIdsFromEpisode(episode.getEpisodeId());
-                    episode.addSongIds(episodeSongIds);
-                    songIds.addAll(episodeSongIds);
-                } catch (IOException e) {
-                    App.logger.log(Level.SEVERE, "Error getting episode info from Tunefind", e);
-                }
+                RetryPolicy<Object> retryPolicy = new RetryPolicy<>()
+                    .handle(Exception.class)
+                    .onFailure(e -> App.logger.log(Level.SEVERE, "Error getting episode info from Tunefind", e))
+                    .withBackoff(10, 30, ChronoUnit.SECONDS)
+                    .withMaxRetries(10);
+
+                Failsafe.with(retryPolicy)
+                    .run(() -> {
+                        List<String> episodeSongIds = getSongIdsFromEpisode(episode.getEpisodeId());
+                        episode.addSongIds(episodeSongIds);
+                        songIds.addAll(episodeSongIds);
+                    });
             });
         });
 
@@ -67,7 +75,8 @@ public class TunefindScraper implements Scraper {
     public List<String> getSongIdsFromEpisode(String episodeUrlComponent) throws IOException {
         List<String> songIds = new ArrayList<>();
 
-        InputStream input = new URL("https://www.tunefind.com/api/frontend/episode/" + episodeUrlComponent + "?fields=song-events,questions,nextPrev").openStream();
+        InputStream input = new URL("https://www.tunefind.com/api/frontend/episode/" + episodeUrlComponent
+            + "?fields=song-events,questions,nextPrev").openStream();
         Reader reader = new InputStreamReader(input, "UTF-8");
         JsonParser parser = new JsonParser();
         JsonObject rootObj = parser.parse(reader).getAsJsonObject().getAsJsonObject("episode");
@@ -81,8 +90,16 @@ public class TunefindScraper implements Scraper {
                 String redirectUrl = "https://www.tunefind.com" + forwardUrl.getAsString();
                 String url = getRedirect(redirectUrl, false);
 
+                // Probably rate limited
+                if (url == null) {
+                    throw new IOException("URL null (rate limit?)");
+                }
+
                 if (url.contains("open.spotify.com") && !url.contains("open.spotify.com/search/results")) {
-                    songIds.add(url.replaceAll("https://open.spotify.com/track/", "spotify:track:")); // Spotify URI formatting
+                    songIds.add(
+                        // Spotify URI formatting
+                        url.replaceAll("https://open.spotify.com/track/", "spotify:track:")
+                    );
                 }
             }
         }
@@ -123,7 +140,8 @@ public class TunefindScraper implements Scraper {
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setInstanceFollowRedirects(false);
         conn.setUseCaches(false);
-        conn.addRequestProperty("User-Agent", "Mozilla");
+        conn.addRequestProperty("User-Agent",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36");
         conn.connect();
 
         int status = conn.getResponseCode();

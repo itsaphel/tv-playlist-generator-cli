@@ -109,7 +109,7 @@ public class Spotify {
         throws IOException, SpotifyWebApiException {
         _getUserId();
 
-        int batchSize = 99;
+        int batchSize = 50;
         int numberBatchesRequired = (int) Math.floor(trackIds.size() / batchSize);
         for (int batch = 0; batch < numberBatchesRequired; batch++) {
             int fromIndex = batch * batchSize;
