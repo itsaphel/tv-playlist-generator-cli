@@ -13,11 +13,11 @@ public interface Scraper {
     List<String> getSongIds() throws IOException;
 
     /**
-     * Get Spotify song IDs for a given episode.
+     * Get Spotify song IDs for a given relevant identifier to the scraper in question
+     * (eg a title of a TV show, the name of a radio station in a game, etc)
      *
-     * @param episodeUrlComponent URL component after the show title, must include season and
-     * episode number
-     * @return array of Spotify song IDs (for an episode)
+     * @param identifier identifier as understood by the relevant scraper
+     * @return array of corresponding Spotify song IDs
      */
-    List<String> getSongIdsFromEpisode(String episodeUrlComponent) throws IOException;
+    List<String> getSongIdsFromIdentifier(String identifier) throws IOException;
 }

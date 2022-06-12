@@ -59,7 +59,7 @@ public class TunefindScraper implements Scraper {
 
                 Failsafe.with(retryPolicy)
                     .run(() -> {
-                        List<String> episodeSongIds = getSongIdsFromEpisode(episode.getEpisodeId());
+                        List<String> episodeSongIds = getSongIdsFromIdentifier(episode.getEpisodeId());
                         episode.addSongIds(episodeSongIds);
                         songIds.addAll(episodeSongIds);
                     });
@@ -70,9 +70,9 @@ public class TunefindScraper implements Scraper {
     }
 
     /**
-     * @see Scraper#getSongIdsFromEpisode(String)
+     * @see Scraper#getSongIdsFromIdentifier(String)
      */
-    public List<String> getSongIdsFromEpisode(String episodeUrlComponent) throws IOException {
+    public List<String> getSongIdsFromIdentifier(String episodeUrlComponent) throws IOException {
         List<String> songIds = new ArrayList<>();
 
         InputStream input = new URL("https://www.tunefind.com/api/frontend/episode/" + episodeUrlComponent
