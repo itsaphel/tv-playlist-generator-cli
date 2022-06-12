@@ -1,14 +1,14 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 
 }
 
 group 'io.indices'
 version '1.0-SNAPSHOT'
 
-sourceCompatibility = 1.15
-targetCompatibility = 1.15
+sourceCompatibility = 1.17
+targetCompatibility = 1.17
 
 repositories {
     mavenCentral()
@@ -16,29 +16,26 @@ repositories {
 }
 
 dependencies {
-    compile 'org.jsoup:jsoup:1.11.3'
-    compile 'se.michaelthelin.spotify:spotify-web-api-java:2.0.3'
-    compile 'com.google.code.gson:gson:2.8.5'
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    implementation 'org.jsoup:jsoup:1.15.1'
+    implementation 'se.michaelthelin.spotify:spotify-web-api-java:7.1.0'
+    implementation 'com.google.code.gson:gson:2.9.0'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
     implementation 'net.jodah:failsafe:2.4.0'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+test {
+    useJUnitPlatform()
 }
 
 jar {
     manifest {
         attributes(
-                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+                'Class-Path': configurations.runtimeClasspath.collect { it.getName() }.join(' '),
                 'Main-Class': 'io.indices.tvplaylistgenerator.Bootstrap'
         )
-    }
-}
-
-shadowJar {
-    mergeServiceFiles()
-    configurations = [project.configurations.compile]
-
-    manifest {
-        attributes 'Implementation-Version': project.version
     }
 }
 
