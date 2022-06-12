@@ -2,8 +2,6 @@ package io.indices.tvplaylistgenerator;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
-import com.wrapper.spotify.model_objects.specification.Playlist;
 import io.indices.tvplaylistgenerator.scraper.TunefindScraper;
 import io.indices.tvplaylistgenerator.streaming.Spotify;
 import java.io.File;
@@ -21,6 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.hc.core5.http.ParseException;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.model_objects.specification.Playlist;
 
 public class App {
 
@@ -55,7 +56,7 @@ public class App {
                 config.setTokenValidityDuration(newData[3]);
                 saveJsonToFile(configLocation, config, Config.class);
             }
-        } catch (IOException | SpotifyWebApiException e) {
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
             logger.log(Level.SEVERE, "Error authenticating with Spotify", e);
             System.exit(4);
         }
@@ -63,7 +64,7 @@ public class App {
         try {
             Playlist playlist = spotify.createPlaylist(showId);
             spotify.addTracksToPlaylist(playlist, songIds);
-        } catch (IOException | SpotifyWebApiException e) {
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
             logger.log(Level.SEVERE, "Error creating/adding songs to playlist", e);
             System.exit(4);
         }

@@ -1,11 +1,5 @@
 package io.indices.tvplaylistgenerator.streaming;
 
-import com.wrapper.spotify.SpotifyApi;
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
-import com.wrapper.spotify.model_objects.credentials.AuthorizationCodeCredentials;
-import com.wrapper.spotify.model_objects.special.SnapshotResult;
-import com.wrapper.spotify.model_objects.specification.Playlist;
-import com.wrapper.spotify.requests.data.playlists.AddTracksToPlaylistRequest;
 import io.indices.tvplaylistgenerator.App;
 import java.io.IOException;
 import java.net.URI;
@@ -15,6 +9,13 @@ import java.util.List;
 import java.util.Scanner;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hc.core5.http.ParseException;
+import se.michaelthelin.spotify.SpotifyApi;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.model_objects.credentials.AuthorizationCodeCredentials;
+import se.michaelthelin.spotify.model_objects.special.SnapshotResult;
+import se.michaelthelin.spotify.model_objects.specification.Playlist;
+import se.michaelthelin.spotify.requests.data.playlists.AddItemsToPlaylistRequest;
 
 public class Spotify {
 
@@ -33,7 +34,7 @@ public class Spotify {
     }
 
     public String[] authenticate(String accessToken, String refreshToken, String tokenDate,
-        String tokenValidityDuration) throws IOException, SpotifyWebApiException {
+        String tokenValidityDuration) throws IOException, SpotifyWebApiException, ParseException {
         if (!accessToken.isEmpty() && !refreshToken.isEmpty()) {
             if (System.currentTimeMillis() > (Long.parseLong(tokenDate)
                 + Long.parseLong(tokenValidityDuration) * 1000)) {
@@ -85,11 +86,11 @@ public class Spotify {
         return newData;
     }
 
-    public String getUserId() throws IOException, SpotifyWebApiException {
+    public String getUserId() throws IOException, SpotifyWebApiException, ParseException {
         return spotifyApi.getCurrentUsersProfile().build().execute().getId();
     }
 
-    public Playlist createPlaylist(String name) throws IOException, SpotifyWebApiException {
+    public Playlist createPlaylist(String name) throws IOException, SpotifyWebApiException, ParseException {
         _getUserId();
         String date = new SimpleDateFormat("dd-MM-yyyy").format(Calendar.getInstance().getTime());
 
@@ -106,7 +107,7 @@ public class Spotify {
     }
 
     public void addTracksToPlaylist(Playlist playlist, List<String> trackIds)
-        throws IOException, SpotifyWebApiException {
+      throws IOException, SpotifyWebApiException, ParseException {
         _getUserId();
 
         int batchSize = 50;
@@ -118,8 +119,8 @@ public class Spotify {
             String[] trackIdArray = new String[subList.size()];
             subList.toArray(trackIdArray);
 
-            AddTracksToPlaylistRequest addTracksToPlaylistRequest = spotifyApi
-                    .addTracksToPlaylist(this.userId, playlist.getId(), trackIdArray)
+            AddItemsToPlaylistRequest addTracksToPlaylistRequest = spotifyApi
+                    .addItemsToPlaylist(playlist.getId(), trackIdArray)
                     .build();
 
             SnapshotResult snapshotResult = addTracksToPlaylistRequest.execute();
@@ -127,7 +128,7 @@ public class Spotify {
         }
     }
 
-    private void _getUserId() throws IOException, SpotifyWebApiException {
+    private void _getUserId() throws IOException, SpotifyWebApiException, ParseException {
         if (this.userId == null || this.userId.isEmpty()) {
             this.userId = getUserId();
         }
