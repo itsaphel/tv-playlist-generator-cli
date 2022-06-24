@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'io.indices'
-version '1.0-SNAPSHOT'
+version '1.1-SNAPSHOT'
 
 sourceCompatibility = 1.17
 targetCompatibility = 1.17

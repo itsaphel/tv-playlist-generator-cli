@@ -2,7 +2,7 @@ package io.indices.tvplaylistgenerator;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import io.indices.tvplaylistgenerator.scraper.TunefindScraper;
+import io.indices.tvplaylistgenerator.scraper.TextFile;
 import io.indices.tvplaylistgenerator.streaming.Spotify;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -31,38 +31,24 @@ public class App {
     private File configLocation;
     private Config config;
 
-    public void run(String showId) {
+    public void run(String name, String identifier) {
         initialise();
         List<String> songIds = new ArrayList<>();
 
+        Spotify spotify = new Spotify(this, config.getClientId(), config.getClientSecret());
+        authenticateWithSpotify(spotify);
+
         try {
-            songIds = new TunefindScraper(showId).getSongIds();
+            //songIds = new TunefindScraper(showId).getSongIds();
+            songIds = new TextFile(spotify).getSongIdsFromIdentifier(identifier);
             System.out.println(String.join(",", songIds));
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "Error getting song IDs from TunefindScraper", e);
-            System.exit(4);
-        }
-
-        Spotify spotify = new Spotify(this, config.getClientId(), config.getClientSecret());
-
-        try {
-            String[] newData = spotify
-                .authenticate(config.getAccessToken(), config.getRefreshToken(),
-                    config.getTokenCreationDate(), config.getTokenValidityDuration());
-            if (newData.length > 0) {
-                config.setAccessToken(newData[0]);
-                config.setRefreshToken(newData[1]);
-                config.setTokenCreationDate(newData[2]);
-                config.setTokenValidityDuration(newData[3]);
-                saveJsonToFile(configLocation, config, Config.class);
-            }
-        } catch (IOException | SpotifyWebApiException | ParseException e) {
-            logger.log(Level.SEVERE, "Error authenticating with Spotify", e);
+            logger.log(Level.SEVERE, "Error getting song IDs from source", e);
             System.exit(4);
         }
 
         try {
-            Playlist playlist = spotify.createPlaylist(showId);
+            Playlist playlist = spotify.createPlaylist(name);
             spotify.addTracksToPlaylist(playlist, songIds);
         } catch (IOException | SpotifyWebApiException | ParseException e) {
             logger.log(Level.SEVERE, "Error creating/adding songs to playlist", e);
@@ -103,6 +89,24 @@ public class App {
     private <T> void saveJsonToFile(File location, Object clazz, Type type) throws IOException {
         try (Writer writer = new FileWriter(location, false)) {
             gson.toJson(clazz, writer);
+        }
+    }
+
+    private void authenticateWithSpotify(Spotify spotify) {
+        try {
+            String[] newData = spotify
+              .authenticate(config.getAccessToken(), config.getRefreshToken(),
+                config.getTokenCreationDate(), config.getTokenValidityDuration());
+            if (newData.length > 0) {
+                config.setAccessToken(newData[0]);
+                config.setRefreshToken(newData[1]);
+                config.setTokenCreationDate(newData[2]);
+                config.setTokenValidityDuration(newData[3]);
+                saveJsonToFile(configLocation, config, Config.class);
+            }
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            logger.log(Level.SEVERE, "Error authenticating with Spotify", e);
+            System.exit(4);
         }
     }
 }
